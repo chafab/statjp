@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <bean id="DummyJSonProviderStatsList" class="com.nekonex.statjp.DummyJSonDataProvider">
+        <constructor-arg index="0" value="F:\\OneDrive\\Projects\\java\\estatjapan\\data\\EN\\.raw.utf8.txt"/>
+    </bean>
+    <bean id="DummyJSonTableProviderStatsList" class="com.nekonex.statjp.DummyJSonDataProvider">
+        <constructor-arg index="0" value="F:\\OneDrive\\Projects\\java\\estatjapan\\data\\EN\\tables_json\\test.utf8.txt"/>
+    </bean>
+    <bean id="HTTPJSonProvider" class="com.nekonex.statjp.HTTPJSonDataProvider">
+        <constructor-arg index="0"  ref="AppConfig" />
+    </bean>
+    <bean id="AppConfig" class="com.nekonex.statjp.ApplicationConfiguration">
+        <constructor-arg index="0" value="${app_id}"/>
+        <constructor-arg index="1" value="${output_path}"/>
+    </bean>
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="location">
+            <value>file:config/application.properties</value>
+        </property>
+    </bean>
+    <bean id="TableParser" class="com.nekonex.statjp.TableParser">
+        <constructor-arg index="0" ref="AppConfig" />
+        <constructor-arg index="1" ref="DummyJSonTableProviderStatsList"/>
+    </bean>
+    <bean id="StatsListParser" class="com.nekonex.statjp.StatsListParser">
+        <constructor-arg index="0"  ref="AppConfig" />
+        <constructor-arg index="1" ref="TableParser"/>
+        <constructor-arg index="2" ref="DummyJSonProviderStatsList"/>
+    </bean>
+    <bean id="Program" class="com.nekonex.statjp.Program">
+        <constructor-arg index="0" ref="StatsListParser"/>
+        <constructor-arg index="1" value="${output_path}/jp_statlist.csv"/>
+        <constructor-arg index="2" value="${output_path}/en_statlist.csv"/>
+    </bean>
+</beans>

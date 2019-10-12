@@ -9,8 +9,8 @@ import java.io.FileOutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Component
 public class StatsListParser {
@@ -21,10 +21,16 @@ public class StatsListParser {
 
     private String _id;
     private String _additionalParameter;
-    class StatsTableEntry
+    class StatsTableEntry implements Comparable< StatsTableEntry >
     {
-        String entry;
-        String date;
+        private String entry;
+        private String id;
+        private String date;
+
+        @Override
+        public int compareTo(StatsTableEntry o) {
+            return this.date.compareTo(o.date);
+        }
     }
 
     private IJSonDataProvider _provider;
@@ -67,9 +73,21 @@ public class StatsListParser {
         }
     }
 
-    private void saveFile(String prefix) throws Exception
+    private void saveFile(String prefix, String statId) throws Exception
     {
-        try (FileOutputStream fileOutputStream2 = new FileOutputStream("F:\\OneDrive\\Projects\\java\\estatjapan\\data\\" + prefix + "\\summary_csv\\summary.csv")) {
+        if (!Files.exists(Paths.get(_appConfig.getOutputPath()+prefix + "\\summary_csv\\"+statId+"_summary.csv")))
+        {
+            Files.createDirectories(Paths.get(_appConfig.getOutputPath()+prefix + "\\summary_csv\\"));
+        }
+        else
+        {
+            Date date = new Date();
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd-hhmmss");
+            String strDate = formatter.format(date);
+            Files.move(Paths.get(_appConfig.getOutputPath()+prefix + "\\summary_csv\\summary.csv"),Paths.get(_appConfig.getOutputPath()+prefix + "\\summary_csv\\summary_"+strDate+".csv"));
+        }
+        try (FileOutputStream fileOutputStream2 = new FileOutputStream("F:\\OneDrive\\Projects\\java\\estatjapan\\data\\" + prefix + "\\summary_csv\\"+statId+"_summary.csv")) {
+
             String str = "ID,TITLE,TABLE_CATEGORY,TABLE_NAME,TABLE_EXPLANATION,STAT_NAME,GOV_ORG,STATISTICS_NAME,TABULATION_CATEGORY,TABULATION_SUB_CATEGORY1,TABULATION_SUB_CATEGORY2,MAIN_CATEGORY,SUB_CATEGORY,SURVEY_DATE,OPEN_DATE,UPDATED_DATE\n";
             fileOutputStream2.write(str.getBytes());
             for (StatsTableEntry tabEntry : _mapUpdateDateById.values()) {
@@ -92,8 +110,10 @@ public class StatsListParser {
         } else {
             prefix = "JP";
         }
-        String fileName = _appConfig.getOutputPath() + prefix + "\\.raw.utf8.txt";
-        readCSV(_appConfig.getOutputPath() + prefix + "\\summary_csv\\summary.csv");
+        int numFiles = 0;
+        String fileName = _appConfig.getOutputPath() + prefix + "\\"+statid+".raw.utf8.txt";
+        readCSV(_appConfig.getOutputPath() + prefix + "\\summary_csv\\"+statid+"_summary.csv");
+        ArrayList<StatsTableEntry> newEntries = new ArrayList<StatsTableEntry>();
         try {
             json = json.getAsJsonObject("DATALIST_INF");
             JsonArray array = json.getAsJsonArray("TABLE_INF");
@@ -157,21 +177,31 @@ public class StatsListParser {
                 buffer.append("\n");
                 if (_mapUpdateDateById.containsKey(id) == false || _mapUpdateDateById.get(id).date != updateDate) {
 
-                    try {
-                        _parser.genData(id, _additionalParameter);
                         StatsTableEntry entry = new StatsTableEntry();
                         entry.entry = buffer.toString();
+                        entry.id = id;
                         entry.date = updateDate;
-                        _mapUpdateDateById.put(id, entry);
-                    } catch (Exception e) {
-                        logger.error("Cannot Generate Data id=["+statid+"] params=["+additinalParameter+"]");
-                        logger.error(ExceptionUtils.getStackTrace(e));
-                    } finally {
-                        Thread.sleep(5000);
-                    }
+                        newEntries.add(entry);
+
                 }
             }
-            saveFile(prefix);
+            Collections.sort(newEntries, Collections.reverseOrder());
+            for (int numNewFiles = 0; numNewFiles < newEntries.size();++numNewFiles)
+            {
+                try {
+                    _parser.genData(newEntries.get(numNewFiles).id, _additionalParameter);
+                    _mapUpdateDateById.put(newEntries.get(numNewFiles).id, newEntries.get(numNewFiles));
+                } catch (Exception e) {
+                    logger.error("Cannot Generate Data id=["+statid+"] params=["+additinalParameter+"]");
+                    logger.error(ExceptionUtils.getStackTrace(e));
+                } finally {
+                    Thread.sleep(5000);
+                    ++numFiles;
+                    if (numFiles % 10 == 0)
+                        saveFile(prefix, statid);
+                }
+            }
+            saveFile(prefix, statid);
         } catch (Exception e) {
             logger.error("Cannot Generate Data id=["+statid+"] params=["+additinalParameter+"]");
             logger.error(ExceptionUtils.getStackTrace(e));

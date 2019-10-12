@@ -11,6 +11,8 @@ import java.io.BufferedInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 
 public class HTTPJSonDataProvider implements IJSonDataProvider{
@@ -37,22 +39,27 @@ public class HTTPJSonDataProvider implements IJSonDataProvider{
 
 
     public JsonObject getJSonObject(String path) throws Exception{
+        logger.info("Downloading data : "+path);
         JsonObject json = null;
         String Filename2 = _appConfig.getOutputPath();
         if (path.contains("lang=E"))
             Filename2 += "\\EN\\";
-        if (path.contains("/getStatsData?")) {
-            Filename2 += "\\tables_json\\";
-            String str = path.substring(path.lastIndexOf("statsDataId=") + 12, path.length());
-            if (str.lastIndexOf("&") != -1)
-                Filename2 += str.substring(0, str.lastIndexOf("&"));
-            else
-                Filename2 += str;
+        else
+            Filename2 += "\\JP\\";
+        Filename2 += "\\raw\\";
+        if (path.contains("/getStatsData?") || path.contains("/getStatsList?")) {
+
+            String str = path.substring(path.indexOf("?") + 1, path.length());
+            Filename2 += str;
         }
         Filename2 += ".raw.utf8.txt";
         String Filename = Filename2.replace(".uf8", "");
+        if (!Files.exists(Paths.get(Filename2.replace(".uf8", ""))))
+        {
+            Files.createDirectories(Paths.get(Filename2.replace(".uf8", "").substring(0,Filename2.lastIndexOf("\\"))));
+        }
         try (BufferedInputStream in = new BufferedInputStream(new URL(path).openStream());
-             FileOutputStream fileOutputStream = new FileOutputStream(Filename2.replace(".uf8", ""))) {
+             FileOutputStream fileOutputStream = new FileOutputStream(Filename2.replace(".utf8", ""))) {
             int index = 0;
             int bytesRead;
 

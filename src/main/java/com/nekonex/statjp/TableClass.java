@@ -57,6 +57,11 @@ public class TableClass {
     {
         return !StringUtils.isEmpty(_filter);
     }
+    public boolean hasUnit()
+    {
+        return !StringUtils.isEmpty(_unit);
+    }
+
 
     public static TableClass parse(JsonObject obj)
     {
@@ -105,7 +110,7 @@ public class TableClass {
     }
 
 
-    public void buildCsv(StringBuffer buffer, boolean printFilter, boolean printAge)
+    public void buildCsv(StringBuffer buffer, boolean printUnit, boolean printFilter, boolean printAge)
     {
         if (buffer.length() > 0)
         {
@@ -114,6 +119,10 @@ public class TableClass {
         else
         {
             buffer.append("\""+_name+"\"");
+        }
+        if (printUnit)
+        {
+            buffer.append(",\""+_unit+"\"");
         }
         if (printFilter)
         {

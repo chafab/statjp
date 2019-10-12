@@ -11,6 +11,7 @@ public class TableCategory implements ITableInfoParser {
     private HashMap<String, TableClass> mapTableClassByTableClassId = new HashMap<>();
     private boolean hasAgeFilter = false;
     private boolean hasFilter = false;
+    private boolean hasUnit = false;
 
     public TableCategory(JsonObject object)
     {
@@ -23,12 +24,14 @@ public class TableCategory implements ITableInfoParser {
                 TableClass tabClass = TableClass.parse(classElementArray.get(j).getAsJsonObject());
                 hasAgeFilter = hasAgeFilter || tabClass.hasAgeFilter();
                 hasFilter = hasFilter || tabClass.hasFilter();
+                hasUnit =  hasUnit || tabClass.hasUnit();
                 mapTableClassByTableClassId.put(tabClass.get_code(), tabClass);
             }
         } else {
             TableClass tabClass = TableClass.parse( object.get("CLASS").getAsJsonObject());
             hasAgeFilter = hasAgeFilter || tabClass.hasAgeFilter();
             hasFilter = hasFilter || tabClass.hasFilter();
+            hasUnit =  hasUnit || tabClass.hasUnit();
             mapTableClassByTableClassId.put(tabClass.get_code(), tabClass);
         }
     }
@@ -53,6 +56,10 @@ public class TableCategory implements ITableInfoParser {
         {
             buffer.append("\""+_categoryName+"\"");
         }
+        if (hasUnit)
+        {
+            buffer.append(",\""+_categoryName+" unit"+"\"");
+        }
         if (hasFilter)
         {
             buffer.append(",\""+_categoryName+" filter"+"\"");
@@ -67,6 +74,6 @@ public class TableCategory implements ITableInfoParser {
     public void parse(JsonObject tableInfo, StringBuffer buffer)
     {
         String str = tableInfo.get("@"+_categoryId).getAsString();
-        mapTableClassByTableClassId.get(str).buildCsv(buffer, hasFilter,hasAgeFilter);
+        mapTableClassByTableClassId.get(str).buildCsv(buffer, hasUnit, hasFilter,hasAgeFilter);
     }
 }

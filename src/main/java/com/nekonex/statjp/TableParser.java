@@ -6,10 +6,12 @@ import org.apache.log4j.Logger;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class TableParser {
-    ApplicationConfiguration AppConfig;
+    ApplicationConfiguration _appConfig;
     final static Logger logger = Logger.getLogger(StatsListParser.class);
 
     private String _id;
@@ -18,21 +20,8 @@ public class TableParser {
 
     public TableParser(ApplicationConfiguration config, IJSonDataProvider provider)
     {
-        AppConfig = config;
+        _appConfig = config;
         _provider = provider;
-    }
-
-
-    private static byte[] appendData(byte[] array1, byte[] array2, int index1, int index2)
-    {
-        byte[] result = array1;
-        if (array1.length < index1+index2)
-        {
-            result = new byte[array1.length*2];
-            System.arraycopy(array1,0,result,0,index1);
-        }
-        System.arraycopy(array2,0,result,index1,index2);
-        return result;
     }
 
     private void parse(JsonObject obj, boolean genHeadersAndOverwrite, String csvFileName) throws Exception{
@@ -57,8 +46,10 @@ public class TableParser {
         JsonObject dataInf = obj.getAsJsonObject("DATA_INF");
         JsonArray values = dataInf.getAsJsonArray("VALUE");
 
-
-        byte allBuffer[] = new byte[1000000000];
+        if (!Files.exists(Paths.get(csvFileName)))
+        {
+            Files.createDirectories(Paths.get(csvFileName.substring(0,csvFileName.lastIndexOf("\\"))));
+        }
         try (FileOutputStream fileOutputStream = new FileOutputStream(csvFileName, !genHeadersAndOverwrite)) {
             StringBuffer buffer = new StringBuffer();
             if (genHeadersAndOverwrite) {
@@ -81,17 +72,17 @@ public class TableParser {
             }
         }
         if (next > 0) {
+            Thread.sleep(5000);
             genTableData(next, false);
         }
     }
     private void genTableData(long position, boolean genHeadersAndOverwrite) throws Exception
     {
         logger.info("Generating Table Data id=["+_id+"] params=["+_additionalParameter+"]"+" position=["+position+"]");
-        byte allBuffer[] = new byte[1000000000];
         JsonObject json = null;
         boolean generated=false;
         try {
-            json = _provider.getJSonObject("https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData?startPosition=1&statsDataId="+_id+"&appId=" + AppConfig.getAppID()+ _additionalParameter+"&startPosition="+position);
+            json = _provider.getJSonObject("https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData?statsDataId="+_id+"&appId=" + _appConfig.getAppID()+ _additionalParameter+"&startPosition="+position);
         }
         catch (IOException e){
             logger.error("Cannot Generate Table Data pos=["+position+"] headers=["+genHeadersAndOverwrite+"] id=["+_id+"] params=["+_additionalParameter+"]");
@@ -108,7 +99,7 @@ public class TableParser {
         {
             prefix = "JP";
         }
-        String csvFilename = AppConfig.getOutputPath() + prefix + "\\tables_json\\" + _id + ".csv";
+        String csvFilename = _appConfig.getOutputPath() + prefix + "\\tables_json\\" + _id + ".csv";
 
 
         parse(json, genHeadersAndOverwrite, csvFilename);
@@ -118,6 +109,7 @@ public class TableParser {
     {
         logger.info("Generating Table Data id=["+id+"] params=["+additionalParameter+"]");
         _id = id;
+
         _additionalParameter = additionalParameter;
         genTableData(0, true);
     }

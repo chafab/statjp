@@ -25,11 +25,12 @@ public class StatsListParser {
     {
         private String entry;
         private String id;
-        private String date;
+        private String updateDate;
+        private String openDate;
 
         @Override
         public int compareTo(StatsTableEntry o) {
-            return this.date.compareTo(o.date);
+            return this.openDate.compareTo(o.openDate);
         }
     }
 
@@ -60,9 +61,10 @@ public class StatsListParser {
                 for (String str : lines) {
                     String[] array = str.split(",");
                     StatsTableEntry entry = new StatsTableEntry();
-                    entry.date = array[15];
-                    entry.entry = str;
-                    _mapUpdateDateById.put(array[0], entry);
+                    entry.updateDate = array[15].replace("\"","");
+                    entry.openDate = array[14].replace("\"","");
+                    entry.entry = array[0].replace("\"","");
+                    _mapUpdateDateById.put(_additionalParameter+entry.entry, entry);
                 }
             }
             catch (Exception e)
@@ -73,7 +75,7 @@ public class StatsListParser {
         }
     }
 
-    private void saveFile(String prefix, String statId) throws Exception
+    private void saveFile(String prefix, String statId, ArrayList<String> statsIds) throws Exception
     {
         if (!Files.exists(Paths.get(_appConfig.getOutputPath()+prefix + "\\summary_csv\\"+statId+"_summary.csv")))
         {
@@ -84,14 +86,14 @@ public class StatsListParser {
             Date date = new Date();
             SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd-hhmmss");
             String strDate = formatter.format(date);
-            Files.move(Paths.get(_appConfig.getOutputPath()+prefix + "\\summary_csv\\summary.csv"),Paths.get(_appConfig.getOutputPath()+prefix + "\\summary_csv\\summary_"+strDate+".csv"));
+            Files.move(Paths.get(_appConfig.getOutputPath()+prefix + "\\summary_csv\\"+statId+"_summary.csv"),Paths.get(_appConfig.getOutputPath()+prefix + "\\summary_csv\\"+statId+"_summary_"+strDate+".csv"));
         }
         try (FileOutputStream fileOutputStream2 = new FileOutputStream("F:\\OneDrive\\Projects\\java\\estatjapan\\data\\" + prefix + "\\summary_csv\\"+statId+"_summary.csv")) {
 
             String str = "ID,TITLE,TABLE_CATEGORY,TABLE_NAME,TABLE_EXPLANATION,STAT_NAME,GOV_ORG,STATISTICS_NAME,TABULATION_CATEGORY,TABULATION_SUB_CATEGORY1,TABULATION_SUB_CATEGORY2,MAIN_CATEGORY,SUB_CATEGORY,SURVEY_DATE,OPEN_DATE,UPDATED_DATE\n";
             fileOutputStream2.write(str.getBytes());
-            for (StatsTableEntry tabEntry : _mapUpdateDateById.values()) {
-                fileOutputStream2.write(tabEntry.entry.getBytes());
+            for (String tabEntry : statsIds) {
+                fileOutputStream2.write(tabEntry.getBytes());
             }
         }
     }
@@ -114,6 +116,7 @@ public class StatsListParser {
         String fileName = _appConfig.getOutputPath() + prefix + "\\"+statid+".raw.utf8.txt";
         readCSV(_appConfig.getOutputPath() + prefix + "\\summary_csv\\"+statid+"_summary.csv");
         ArrayList<StatsTableEntry> newEntries = new ArrayList<StatsTableEntry>();
+        ArrayList<String> allEntries = new ArrayList<String>();
         try {
             json = json.getAsJsonObject("DATALIST_INF");
             JsonArray array = json.getAsJsonArray("TABLE_INF");
@@ -171,18 +174,27 @@ public class StatsListParser {
                 tmp = obj.getAsJsonObject("SUB_CATEGORY");
                 buffer.append(fmtCsvString(tmp.get("$").getAsString(), true));
                 buffer.append(fmtCsvString(obj.getAsJsonPrimitive("SURVEY_DATE").getAsString(), true));
-                buffer.append(fmtCsvString(obj.getAsJsonPrimitive("OPEN_DATE").getAsString(), true));
+                String openDate = obj.getAsJsonPrimitive("OPEN_DATE").getAsString();
+                buffer.append(fmtCsvString(openDate, true));
                 String updateDate = obj.getAsJsonPrimitive("UPDATED_DATE").getAsString();
                 buffer.append(fmtCsvString(updateDate, false));
                 buffer.append("\n");
-                if (_mapUpdateDateById.containsKey(id) == false || _mapUpdateDateById.get(id).date != updateDate) {
+                if (openDate.compareTo(_appConfig.getMinDate()) < 0)
+                {
+                    continue;
+                }
+                if (_mapUpdateDateById.containsKey(additinalParameter+id) == false || !(_mapUpdateDateById.get(additinalParameter+id).updateDate.equals(updateDate))) {
 
                         StatsTableEntry entry = new StatsTableEntry();
                         entry.entry = buffer.toString();
                         entry.id = id;
-                        entry.date = updateDate;
+                        entry.updateDate = updateDate;
+                        entry.openDate = openDate;
                         newEntries.add(entry);
-
+                }
+                else
+                {
+                    allEntries.add(buffer.toString());
                 }
             }
             Collections.sort(newEntries, Collections.reverseOrder());
@@ -191,17 +203,18 @@ public class StatsListParser {
                 try {
                     _parser.genData(newEntries.get(numNewFiles).id, _additionalParameter);
                     _mapUpdateDateById.put(newEntries.get(numNewFiles).id, newEntries.get(numNewFiles));
+                    allEntries.add(newEntries.get(numNewFiles).entry);
                 } catch (Exception e) {
                     logger.error("Cannot Generate Data id=["+statid+"] params=["+additinalParameter+"]");
                     logger.error(ExceptionUtils.getStackTrace(e));
                 } finally {
-                    Thread.sleep(5000);
                     ++numFiles;
+                    logger.info("Completion %"+ (100.0*numFiles)/(1.0*newEntries.size()));
                     if (numFiles % 10 == 0)
-                        saveFile(prefix, statid);
+                        saveFile(prefix, statid, allEntries);
                 }
             }
-            saveFile(prefix, statid);
+            saveFile(prefix, statid, allEntries);
         } catch (Exception e) {
             logger.error("Cannot Generate Data id=["+statid+"] params=["+additinalParameter+"]");
             logger.error(ExceptionUtils.getStackTrace(e));

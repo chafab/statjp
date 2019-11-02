@@ -16,8 +16,9 @@ public class TableClass {
     private String _minAge = null;
     private String _maxAge = null;
     private String _filter = null;
+    private String _parentCode = null;
 
-    private TableClass(String code, String name, String level, String unit, String minAge, String maxAge, String filter)
+    private TableClass(String code, String name, String level, String unit, String minAge, String maxAge, String filter, String parentCode)
     {
         _code = code;
         _name = name;
@@ -26,6 +27,7 @@ public class TableClass {
         _minAge = minAge;
         _maxAge = maxAge;
         _filter = filter;
+        _parentCode = parentCode;
     }
 
     public String get_code()
@@ -47,6 +49,8 @@ public class TableClass {
     {
         return _unit;
     }
+
+    public String get_parentCode() { return _parentCode; }
 
     public boolean hasAgeFilter()
     {
@@ -106,7 +110,10 @@ public class TableClass {
         String unit = "";
         if (obj.get("@unit") != null)
              unit = obj.get("@unit").getAsString();
-        return new TableClass(code, name, level, unit, minAge, maxAge, filter);
+        String parentCode="";
+        if (obj.get("@parentCode") != null)
+            parentCode = obj.get("@parentCode").getAsString();
+        return new TableClass(code, name, level, unit, minAge, maxAge, filter, parentCode);
     }
 
 

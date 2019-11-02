@@ -2,10 +2,13 @@ package com.nekonex.statjp;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.apache.log4j.Logger;
 
 import java.util.HashMap;
 
 public class TableCategory implements ITableInfoParser {
+    final static Logger logger = Logger.getLogger(StatsListParser.class);
+
     private String _categoryName;
     private String _categoryId;
     private HashMap<String, TableClass> mapTableClassByTableClassId = new HashMap<>();
@@ -16,7 +19,14 @@ public class TableCategory implements ITableInfoParser {
     public TableCategory(JsonObject object)
     {
         _categoryId = object.getAsJsonObject().get("@id").getAsString();
-        _categoryName = object.getAsJsonObject().get("@name").getAsString();
+        if (object.getAsJsonObject().get("@name") == null)
+        {
+            _categoryName = _categoryId;
+            logger.info("name missing for category "+_categoryId);
+        }
+        else {
+            _categoryName = object.getAsJsonObject().get("@name").getAsString();
+        }
 
         if (object.get("CLASS").isJsonArray()) {
             JsonArray classElementArray = object.get("CLASS").getAsJsonArray();

@@ -64,6 +64,7 @@ public class Program {
     public void start(ClassPathXmlApplicationContext context) throws Exception
     {
         logger.info("Start");
+
         ArrayList<String> statsList = readCSV(_jpStatListFilename);
         for (String str : statsList)
         {

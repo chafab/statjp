@@ -18,7 +18,7 @@ import java.util.Arrays;
 public class HTTPJSonDataProvider implements IJSonDataProvider{
     final static Logger logger = Logger.getLogger(HTTPJSonDataProvider.class);
 
-    private static byte allBuffer[] = new byte[1000000000];
+    private static byte allBuffer[] = new byte[100000000];
     ApplicationConfiguration _appConfig;
     private static byte[] appendData(byte[] array1, byte[] array2, int index1, int index2)
     {
@@ -39,6 +39,7 @@ public class HTTPJSonDataProvider implements IJSonDataProvider{
 
 
     public JsonObject getJSonObject(String path) throws Exception{
+
         logger.info("Downloading data : "+path);
         JsonObject json = null;
         String Filename2 = _appConfig.getOutputPath();
@@ -53,10 +54,26 @@ public class HTTPJSonDataProvider implements IJSonDataProvider{
             Filename2 += str;
         }
         Filename2 += ".raw.utf8.txt";
-        String Filename = Filename2.replace(".uf8", "");
-        if (!Files.exists(Paths.get(Filename2.replace(".uf8", ""))))
+        String Filename = Filename2.replace(".utf8", "");
+        if (!Files.exists(Paths.get(Filename2.replace(".utf8", ""))))
         {
-            Files.createDirectories(Paths.get(Filename2.replace(".uf8", "").substring(0,Filename2.lastIndexOf("\\"))));
+            Files.createDirectories(Paths.get(Filename2.replace(".utf8", "").substring(0,Filename2.lastIndexOf("\\"))));
+        }
+        else
+        {
+            if (_appConfig.getUseCacheData())
+            {
+                try {
+                    DummyJSonDataProvider provider = new DummyJSonDataProvider(Filename);
+                    json = provider.getJSonObject(Filename);
+                    if (json != null)
+                        return json;
+                }
+                catch (Exception e)
+                {
+
+                }
+            }
         }
         try (BufferedInputStream in = new BufferedInputStream(new URL(path).openStream());
              FileOutputStream fileOutputStream = new FileOutputStream(Filename2.replace(".utf8", ""))) {
@@ -85,6 +102,7 @@ public class HTTPJSonDataProvider implements IJSonDataProvider{
             logger.error("Cannot parse Data "+path);
             logger.error(ExceptionUtils.getStackTrace(e));
         }
+        Thread.sleep(5000);
         return json;
     }
 }

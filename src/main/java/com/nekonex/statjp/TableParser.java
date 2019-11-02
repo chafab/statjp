@@ -24,7 +24,7 @@ public class TableParser {
         _provider = provider;
     }
 
-    private void parse(JsonObject obj, boolean genHeadersAndOverwrite, String csvFileName) throws Exception{
+    private long parse(JsonObject obj, boolean genHeadersAndOverwrite, String csvFileName) throws Exception{
         obj = obj.getAsJsonObject("GET_STATS_DATA");
         obj = obj.getAsJsonObject("STATISTICAL_DATA");
         long next = -1;
@@ -44,12 +44,12 @@ public class TableParser {
         categories.add(new TableSimpleValue("$","value"));
 
         JsonObject dataInf = obj.getAsJsonObject("DATA_INF");
-        JsonArray values = dataInf.getAsJsonArray("VALUE");
 
         if (!Files.exists(Paths.get(csvFileName)))
         {
             Files.createDirectories(Paths.get(csvFileName.substring(0,csvFileName.lastIndexOf("\\"))));
         }
+
         try (FileOutputStream fileOutputStream = new FileOutputStream(csvFileName, !genHeadersAndOverwrite)) {
             StringBuffer buffer = new StringBuffer();
             if (genHeadersAndOverwrite) {
@@ -58,9 +58,37 @@ public class TableParser {
                 buffer.append("\n");
                 fileOutputStream.write(buffer.toString().getBytes());
             }
-            for (int i = 0; i < values.size(); ++i) {
-                buffer.delete(0, buffer.length());
-                JsonObject val = values.get(i).getAsJsonObject();
+            boolean isUnitMissing = false;
+            if (dataInf.get("VALUE").isJsonArray() == true)
+            {
+                JsonArray values = dataInf.getAsJsonArray("VALUE");
+                for (int i = 0; i < values.size(); ++i) {
+                    buffer.delete(0, buffer.length());
+                    JsonObject val = values.get(i).getAsJsonObject();
+                    if (val.get("@unit") == null)
+                    {
+                        val.addProperty("@unit","");
+                        isUnitMissing = true;
+                    }
+                    if (val.keySet().size() != categories.size())
+                        throw new Exception("KeySet and Categories doesn't match");
+                    for (ITableInfoParser parser : categories)
+                    {
+                        parser.parse(val, buffer);
+                    }
+                    buffer.append("\n");
+                    fileOutputStream.write(buffer.toString().getBytes());
+                }
+            }
+            else
+            {
+                JsonObject val = dataInf.getAsJsonObject("VALUE");
+                    buffer.delete(0, buffer.length());
+                if (val.get("@unit") == null)
+                {
+                    isUnitMissing = true;
+                    val.addProperty("@unit","");
+                }
                 if (val.keySet().size() != categories.size())
                     throw new Exception("KeySet and Categories doesn't match");
                 for (ITableInfoParser parser : categories)
@@ -70,13 +98,15 @@ public class TableParser {
                 buffer.append("\n");
                 fileOutputStream.write(buffer.toString().getBytes());
             }
+            if (isUnitMissing)
+            {
+                logger.warn("unit is missing");
+            }
+
         }
-        if (next > 0) {
-            Thread.sleep(5000);
-            genTableData(next, false);
-        }
+        return next;
     }
-    private void genTableData(long position, boolean genHeadersAndOverwrite) throws Exception
+    private long genTableData(long position, boolean genHeadersAndOverwrite) throws Exception
     {
         logger.info("Generating Table Data id=["+_id+"] params=["+_additionalParameter+"]"+" position=["+position+"]");
         JsonObject json = null;
@@ -90,8 +120,9 @@ public class TableParser {
             // handle exception
         }
         String prefix = "";
-        if (json.getAsJsonObject("GET_STATS_DATA").getAsJsonObject("PARAMETER").getAsJsonPrimitive("LANG") != null &&
-                json.getAsJsonObject("GET_STATS_DATA").getAsJsonObject("PARAMETER").getAsJsonPrimitive("LANG").getAsString() == "E")
+        JsonPrimitive lang = json.getAsJsonObject("GET_STATS_DATA").getAsJsonObject("PARAMETER").getAsJsonPrimitive("LANG");
+        if (lang!= null &&
+                lang.toString().replace("\"","").equals("E"))
         {
             prefix = "EN";
         }
@@ -102,7 +133,7 @@ public class TableParser {
         String csvFilename = _appConfig.getOutputPath() + prefix + "\\tables_json\\" + _id + ".csv";
 
 
-        parse(json, genHeadersAndOverwrite, csvFilename);
+        return parse(json, genHeadersAndOverwrite, csvFilename);
     }
 
     public void genData(String id, String additionalParameter) throws Exception
@@ -111,6 +142,12 @@ public class TableParser {
         _id = id;
 
         _additionalParameter = additionalParameter;
-        genTableData(0, true);
+        boolean genHeaders = true;
+
+        long next = genTableData(0, true);
+        while (next > 0)
+        {
+            next = genTableData(next, false);
+        }
     }
 }

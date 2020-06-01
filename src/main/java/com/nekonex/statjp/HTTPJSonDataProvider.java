@@ -81,7 +81,7 @@ public class HTTPJSonDataProvider implements IJSonDataProvider{
             if (_appConfig.getUseCacheData())
             {
                 try {
-                    DummyJSonDataProvider provider = new DummyJSonDataProvider(Filename);
+                    CachedJSonDataProvider provider = new CachedJSonDataProvider();
                     json = provider.getJSonObject(Filename);
                     if (json != null)
                         return json;

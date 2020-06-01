@@ -12,36 +12,28 @@ import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Queue;
 
-public class DummyJSonDataProvider implements IJSonDataProvider {
-    final static Logger logger = Logger.getLogger(DummyJSonDataProvider.class);
+public class CachedJSonDataProvider implements IJSonDataProvider {
+    final static Logger logger = Logger.getLogger(CachedJSonDataProvider.class);
 
-    Queue<String> _contentQueue = new ArrayDeque<>();
-
-    public DummyJSonDataProvider(String path) {
-        //For test only
+    public JsonObject getJSonObject(String path) throws Exception {
+        if (path.isEmpty())
+            throw new Exception("The path provided is empty");
+        String cachedData;
         try {
             List<String> lines = Files.readAllLines(Paths.get(path), Charset.forName("UTF8"));
             StringBuffer sBuf = new StringBuffer();
             for (String str : lines) {
                 sBuf.append(str);
             }
-            this.enqueueContent(sBuf.toString());
+            cachedData = sBuf.toString();
         }
         catch (Exception e)
         {
             logger.error("Cannot parse Data "+path);
             logger.error(ExceptionUtils.getStackTrace(e));
+            throw  e;
         }
-    }
-
-    public void enqueueContent(String val) {
-        _contentQueue.add(val);
-    }
-    public JsonObject getJSonObject(String path) throws Exception {
-        if (_contentQueue.isEmpty())
-            throw new Exception("Queue is empty");
-        String content = _contentQueue.poll();
         JsonParser parser = new JsonParser();
-        return parser.parse(content).getAsJsonObject();
+        return parser.parse(cachedData).getAsJsonObject();
     }
 }

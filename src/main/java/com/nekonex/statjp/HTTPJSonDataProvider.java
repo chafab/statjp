@@ -5,8 +5,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.log4j.Logger;
-
 import java.io.BufferedInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -15,9 +13,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Random;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 public class HTTPJSonDataProvider implements IJSonDataProvider{
-    final static Logger logger = Logger.getLogger(HTTPJSonDataProvider.class);
+    final static Logger logger = LogManager.getLogger(HTTPJSonDataProvider.class);
 
     private static byte allBuffer[] = new byte[100000000];
 

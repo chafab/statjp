@@ -3,17 +3,16 @@ package com.nekonex.statjp;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.log4j.Logger;
 
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayDeque;
 import java.util.List;
-import java.util.Queue;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 public class CachedJSonDataProvider implements IJSonDataProvider {
-    final static Logger logger = Logger.getLogger(CachedJSonDataProvider.class);
+    final static Logger logger = LogManager.getLogger(CachedJSonDataProvider.class);
 
     public JsonObject getJSonObject(String path) throws Exception {
         if (path.isEmpty())

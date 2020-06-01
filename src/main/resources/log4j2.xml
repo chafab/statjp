@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Configuration status="debug" name="statsjp" packages="">
+    <Appenders>
+        <Console name="console" target="SYSTEM_OUT">
+                <PatternLayout>
+                    <Pattern>%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n</Pattern>
+                </PatternLayout>
+        </Console>
+        <RollingFile  name="roll-by-time"
+                  fileName="log/nkx_statsjp.log" filePattern="log/nkx_statsjp.%d{yyyyMMdd}.log.gz">
+            <PatternLayout>
+                <Pattern>%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n</Pattern>
+            </PatternLayout>
+            <TimeBasedTriggeringPolicy />
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <Root level="debug">
+            <AppenderRef ref="console" />
+            <AppenderRef ref="roll-by-time" />
+        </Root>
+    </Loggers>
+</Configuration>

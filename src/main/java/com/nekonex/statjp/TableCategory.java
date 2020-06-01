@@ -2,12 +2,12 @@ package com.nekonex.statjp;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.apache.log4j.Logger;
-
 import java.util.HashMap;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 public class TableCategory implements ITableInfoParser {
-    final static Logger logger = Logger.getLogger(StatsListParser.class);
+    final static Logger logger = LogManager.getLogger(StatsListParser.class);
 
     private String _categoryName;
     private String _categoryId;

@@ -2,17 +2,17 @@ package com.nekonex.statjp;
 
 import com.google.gson.*;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.log4j.Logger;
-
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 public class TableParser {
     ApplicationConfiguration _appConfig;
-    final static Logger logger = Logger.getLogger(StatsListParser.class);
+    final static Logger logger = LogManager.getLogger(StatsListParser.class);
 
     private String _id;
     private String _additionalParameter;

@@ -1,25 +1,17 @@
 package com.nekonex.statjp;
 
-import com.google.gson.*;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.log4j.Logger;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.lang.reflect.Array;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 public class Program {
-    final static Logger logger = Logger.getLogger(Program.class);
+    final static Logger logger = LogManager.getLogger(Program.class);
     static String _appId;
     private StatsListParser _parser;
     private String _jpStatListFilename;
@@ -64,7 +56,6 @@ public class Program {
     public void start(ClassPathXmlApplicationContext context) throws Exception
     {
         logger.info("Start");
-
         ArrayList<String> statsList = readCSV(_jpStatListFilename);
         for (String str : statsList)
         {

@@ -1,20 +1,20 @@
 package com.nekonex.statjp;
 
 import com.google.gson.*;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.log4j.Logger;
+import org.apache.commons.lang3.exception.ExceptionUtils;;
 import org.springframework.stereotype.Component;
-
 import java.io.FileOutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 @Component
 public class StatsListParser {
-    final static Logger logger = Logger.getLogger(StatsListParser.class);
+    final static Logger logger = LogManager.getLogger(StatsListParser.class);
 
     ApplicationConfiguration _appConfig;
     TableParser _parser;

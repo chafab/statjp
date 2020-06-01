@@ -14,11 +14,14 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Random;
 
 public class HTTPJSonDataProvider implements IJSonDataProvider{
     final static Logger logger = Logger.getLogger(HTTPJSonDataProvider.class);
 
     private static byte allBuffer[] = new byte[100000000];
+
+    private Random rand = new Random();
     ApplicationConfiguration _appConfig;
     private static byte[] appendData(byte[] array1, byte[] array2, int index1, int index2)
     {
@@ -37,6 +40,20 @@ public class HTTPJSonDataProvider implements IJSonDataProvider{
         _appConfig = config;
     }
 
+    private void sleep () throws InterruptedException
+    {
+        // The estat website mentions to not submit to many requests at the same time
+        if (rand.nextInt() % 200 == 0) // Sleep for 20s every 200 requests in average
+        {
+            Thread.sleep((rand.nextInt() % 50000) + 20000);
+        } else if (rand.nextInt() % 10 == 0) //Sleeps 5s every 10 requests in average
+        {
+            Thread.sleep((rand.nextInt() % 5000) + 5000);
+        } else // Sleeps at least 2s in other cases
+        {
+            Thread.sleep((rand.nextInt() % 2000) + 2000);
+        }
+    }
 
     public JsonObject getJSonObject(String path) throws Exception{
 
@@ -69,12 +86,12 @@ public class HTTPJSonDataProvider implements IJSonDataProvider{
                     if (json != null)
                         return json;
                 }
-                catch (Exception e)
+                catch (Exception e) // The data is not in the cache redownload it
                 {
-
                 }
             }
         }
+        sleep();
         try (BufferedInputStream in = new BufferedInputStream(new URL(path).openStream());
              FileOutputStream fileOutputStream = new FileOutputStream(Filename2.replace(".utf8", ""))) {
             int index = 0;
@@ -102,7 +119,7 @@ public class HTTPJSonDataProvider implements IJSonDataProvider{
             logger.error("Cannot parse Data "+path);
             logger.error(ExceptionUtils.getStackTrace(e));
         }
-        Thread.sleep(5000);
+
         return json;
     }
 }

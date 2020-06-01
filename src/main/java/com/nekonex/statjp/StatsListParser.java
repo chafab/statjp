@@ -88,7 +88,7 @@ public class StatsListParser {
             String strDate = formatter.format(date);
             Files.move(Paths.get(_appConfig.getOutputPath()+prefix + "\\summary_csv\\"+statId+"_summary.csv"),Paths.get(_appConfig.getOutputPath()+prefix + "\\summary_csv\\"+statId+"_summary_"+strDate+".csv"));
         }
-        try (FileOutputStream fileOutputStream2 = new FileOutputStream("F:\\OneDrive\\Projects\\java\\estatjapan\\data\\" + prefix + "\\summary_csv\\"+statId+"_summary.csv")) {
+        try (FileOutputStream fileOutputStream2 = new FileOutputStream(_appConfig.getOutputPath() + prefix + "\\summary_csv\\"+statId+"_summary.csv")) {
 
             String str = "ID,TITLE,TABLE_CATEGORY,TABLE_NAME,TABLE_EXPLANATION,STAT_NAME,GOV_ORG,STATISTICS_NAME,TABULATION_CATEGORY,TABULATION_SUB_CATEGORY1,TABULATION_SUB_CATEGORY2,MAIN_CATEGORY,SUB_CATEGORY,SURVEY_DATE,OPEN_DATE,UPDATED_DATE\n";
             fileOutputStream2.write(str.getBytes());

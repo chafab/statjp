@@ -20,7 +20,6 @@ public class DummyJSonDataProvider implements IJSonDataProvider {
     public DummyJSonDataProvider(String path) {
         //For test only
         try {
-            //List<String> lines = Files.readAllLines(Paths.get("F:\\OneDrive\\Projects\\java\\estatjapan\\data\\EN\\tables_json\\test.utf8.txt"), Charset.forName("UTF8"));
             List<String> lines = Files.readAllLines(Paths.get(path), Charset.forName("UTF8"));
             StringBuffer sBuf = new StringBuffer();
             for (String str : lines) {

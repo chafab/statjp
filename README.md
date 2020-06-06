@@ -24,3 +24,8 @@ https://www.e-stat.go.jp/stat-search?page=1
 
 # License
 Stat japan is Open Source software released under the [Apache 2.0 license](https://www.apache.org/licenses/LICENSE-2.0). 
+
+# Build
+The project is using maven to be build
+mvn install
+The jar file will be located inside the target directory

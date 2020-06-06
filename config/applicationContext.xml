@@ -12,10 +12,10 @@
         <constructor-arg index="0" value="F:\\OneDrive\\Projects\\java\\estatjapan\\data\\EN\\tables_json\\test.utf8.txt"/>
     </bean>
     -->
-    <bean id="HTTPJSonProvider" class="com.nekonex.statjp.HTTPJSonDataProvider">
+    <bean id="HTTPJSonProvider" class="com.nekonex.statjp.dataprovider.HTTPJSonDataProvider">
         <constructor-arg index="0"  ref="AppConfig" />
     </bean>
-    <bean id="AppConfig" class="com.nekonex.statjp.ApplicationConfiguration">
+    <bean id="AppConfig" class="com.nekonex.statjp.config.ApplicationConfiguration">
         <constructor-arg index="0" value="${app_id}"/>
         <constructor-arg index="1" value="${output_path}"/>
         <constructor-arg index="2" value="${use_cache_data}"/>
@@ -26,12 +26,12 @@
             <value>file:config/application.properties</value>
         </property>
     </bean>
-    <bean id="TableParser" class="com.nekonex.statjp.TableParser">
+    <bean id="TableParser" class="com.nekonex.statjp.estatparser.TableParser">
         <constructor-arg index="0" ref="AppConfig" />
         <!-- <constructor-arg index="1" ref="DummyJSonTableProviderStatsList"/> -->
         <constructor-arg index="1" ref="HTTPJSonProvider"/>
     </bean>
-    <bean id="StatsListParser" class="com.nekonex.statjp.StatsListParser">
+    <bean id="StatsListParser" class="com.nekonex.statjp.estatparser.StatsListParser">
         <constructor-arg index="0"  ref="AppConfig" />
         <constructor-arg index="1" ref="TableParser"/>
         <!-- <constructor-arg index="2" ref="DummyJSonProviderStatsList"/> -->

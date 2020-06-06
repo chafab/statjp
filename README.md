@@ -21,3 +21,6 @@ Note that there are currently much more available stats in japanese than english
 
 You can get a description of the different stats at the following URL :
 https://www.e-stat.go.jp/stat-search?page=1
+
+# License
+Stat japan is Open Source software released under the [Apache 2.0 license](https://www.apache.org/licenses/LICENSE-2.0). 
